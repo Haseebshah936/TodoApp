@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -19,22 +19,46 @@ import { useNavigation } from "@react-navigation/native";
 import { Formik } from "formik";
 import ErrorMessage from "./ErrorMessage";
 import { auth } from "../../firebase";
-import Constants from 'expo-constants';
-
+import Constants from "expo-constants";
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().required().email().label("Email"),
   password: Yup.string().required().min(8).label("Password"),
 });
 
-function LoginForm({navigation}) {
+function LoginForm({ navigation }) {
+  const login = (values) => {
+      auth
+      .signInWithEmailAndPassword(values.email, values.password)
+      .then((userCredential) => {
+        // Signed in
+        var user = userCredential.user;
+        navigation.replace("Todo")
+        // ...
+      })
+      .catch((error) => {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        alert(errorMessage)
+      });
+  }
+
+
   return (
     <Pressable onPress={Keyboard.dismiss} style={styles.container}>
-      <Image style={styles.logo} source={{width: 200, height: 200,uri: "https://i.vimeocdn.com/portrait/43791933_640x640?subrect=33%2C35%2C1088%2C1090&r=cover"}} />
+      <Image
+        style={styles.logo}
+        source={{
+          width: 200,
+          height: 200,
+          uri:
+            "https://i.vimeocdn.com/portrait/43791933_640x640?subrect=33%2C35%2C1088%2C1090&r=cover",
+        }}
+      />
 
       <Formik
         initialValues={{ email: "", password: "" }}
-        onSubmit={(values) => console.log(values)}
+        onSubmit={(values) => login(values)}
         validationSchema={validationSchema}
       >
         {({ handleChange, handleSubmit, errors, setFieldTouched, touched }) => (
@@ -100,7 +124,7 @@ function LoginForm({navigation}) {
       <TouchableOpacity
         style={styles.googleLogin}
         activeOpacity={0.6}
-        onPress={() => navigation.navigate("Todo")}
+        onPress={() => navigation.replace("Todo")}
       >
         <Image
           style={styles.googleLogo}

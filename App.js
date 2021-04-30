@@ -3,8 +3,10 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import LoginNavigator from './Components/Navigator/LoginNavigator';
+import { LogBox } from 'react-native';
 
 export default function App() {
+  LogBox.ignoreAllLogs(["Setting a timer for a long period of time", "Cannot update state"])
   return (
     <NavigationContainer>
         <LoginNavigator />

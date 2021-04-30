@@ -6,10 +6,11 @@ import 'firebase/database'
 var firebaseConfig = {
     apiKey: "AIzaSyCYrcKj9y1A4AjdOGR6gf6qOPT7kyrWuoI",
     authDomain: "todo-64931.firebaseapp.com",
+    databaseURL: "https://todo-64931-default-rtdb.firebaseio.com/",
     projectId: "todo-64931",
     storageBucket: "todo-64931.appspot.com",
     messagingSenderId: "1032518549083",
-    appId: "1:1032518549083:web:ba22205c047869fc5ac97e"
+    appId: "1:1032518549083:web:ba22205c047869fc5ac97e",
 };
 
 let app;

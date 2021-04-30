@@ -8,7 +8,7 @@ import {
   Dimensions,
   SafeAreaView,
   Keyboard,
-  Pressable
+  Pressable,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { Fontisto } from "@expo/vector-icons";
@@ -20,7 +20,7 @@ import { useNavigation } from "@react-navigation/native";
 import { Formik } from "formik";
 import ErrorMessage from "./ErrorMessage";
 import { auth } from "../../firebase";
-import Constants from 'expo-constants';
+import Constants from "expo-constants";
 
 const validationSchema = Yup.object().shape({
   userName: Yup.string().required().label("User Name"),
@@ -28,17 +28,50 @@ const validationSchema = Yup.object().shape({
   password: Yup.string().required().min(8).label("Password"),
 });
 
-function RegisterForm(props) {
-  const navigation = useNavigation();
+function RegisterForm({ navigation }) {
+  const register = (values) => {
+    auth
+      .createUserWithEmailAndPassword(values.email, values.password)
+      .then((userCredential) => {
+        // Signed in
+        var user = userCredential.user;
+        user
+          .updateProfile({
+            displayName: values.userName,
+            photoURL: "https://example.com/jane-q-user/profile.jpg",
+          })
+          .then(function () {
+            // Update successful.
+          })
+          .catch(function (error) {
+            // An error happened.
+          });
+          // ...
+          navigation.popToTop()
+      })
+      .catch((error) => {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        alert(errorMessage)
+        // ..
+      });
+  };
 
   return (
-    <Pressable onPress={() => Keyboard.dismiss()} style={styles.container} >
-
-      <Image style={styles.logo} source={{width: 200, height: 200,uri: "https://i.vimeocdn.com/portrait/43791933_640x640?subrect=33%2C35%2C1088%2C1090&r=cover"}} />
+    <Pressable onPress={() => Keyboard.dismiss()} style={styles.container}>
+      <Image
+        style={styles.logo}
+        source={{
+          width: 200,
+          height: 200,
+          uri:
+            "https://i.vimeocdn.com/portrait/43791933_640x640?subrect=33%2C35%2C1088%2C1090&r=cover",
+        }}
+      />
 
       <Formik
         initialValues={{ userName: "", email: "", password: "" }}
-        onSubmit={(values) => console.log(values)}
+        onSubmit={(values) => register(values)}
         validationSchema={validationSchema}
       >
         {({ handleChange, handleSubmit, errors, setFieldTouched, touched }) => (
@@ -135,11 +168,11 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   logo: {
-    marginTop: Constants.statusBarHeight*2,
+    marginTop: Constants.statusBarHeight * 2,
     width: 120,
     height: 120,
     marginBottom: 30,
-    overflow: 'hidden'
+    overflow: "hidden",
   },
   searchBar: {
     width: "90%",
