@@ -28,21 +28,33 @@ const validationSchema = Yup.object().shape({
 
 function LoginForm({ navigation }) {
   const login = (values) => {
-      auth
+    auth
       .signInWithEmailAndPassword(values.email, values.password)
       .then((userCredential) => {
         // Signed in
         var user = userCredential.user;
-        navigation.replace("Todo")
+        navigation.replace("Todo");
         // ...
       })
       .catch((error) => {
         var errorCode = error.code;
         var errorMessage = error.message;
-        alert(errorMessage)
+        alert(errorMessage + "Line 42");
       });
-  }
-
+  };
+  const anonymousSignin = () => {
+    auth.signInAnonymously()
+      .then(() => {
+        // Signed in..
+        navigation.replace("Todo");
+      })
+      .catch((error) => {
+        var errorCode = error.code;
+        var errorMessage = error.message;
+        alert(errorMessage + "Line 56");
+        // ...
+      });
+  };
 
   return (
     <Pressable onPress={Keyboard.dismiss} style={styles.container}>
@@ -124,7 +136,7 @@ function LoginForm({ navigation }) {
       <TouchableOpacity
         style={styles.googleLogin}
         activeOpacity={0.6}
-        onPress={() => navigation.replace("Todo")}
+        onPress={() => anonymousSignin()}
       >
         <Image
           style={styles.googleLogo}

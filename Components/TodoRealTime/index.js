@@ -31,7 +31,7 @@ function index({ navigation }) {
     var uid = userId + "/";
     console.log(uid);
     if (fetched && task !== "") {
-      console.log(data)
+      // console.log(data)
       if (!data) {
         id = 0;
       } else {
@@ -49,24 +49,16 @@ function index({ navigation }) {
 
   const remove = (key) =>{
     console.log(key)
-    if(key === 0){
-      var uid = userId + "/";
-      db1.ref(uid + key).set({
-        key: 0,
-        todo: " "
-      });
-    }
-    else{
-      var uid = userId + "/";
-      db1.ref(uid + key).remove();
-      setAdded(added + 1);
-    }
+    var uid = userId + "/";
+    db1.ref(uid + key).remove();
+    setAdded(added + 1);
   }
 
    async function getUserID(){
     let user = await auth.currentUser;
     if (user != null) {
       console.log(user.uid);
+      console.log(user);
       return user.uid;
     } else {
       navigation.popToTop();
@@ -78,11 +70,19 @@ function index({ navigation }) {
       setUserID(uid)
       var todo = db1.ref(uid);
       todo.on("value", (snapshot) => {
-        console.log(snapshot.val());
+        // console.log(snapshot.val());
         if (snapshot.val()) {
-          let reliableData = snapshot.val().filter( (m) => m!=undefined || m.todo !== " ")
-          setData(reliableData);
-          console.log(reliableData)
+          if(Array.isArray(snapshot.val())){
+            let reliableData = snapshot.val().filter( (m) => m!=undefined || m.todo !== " ")
+            setData(reliableData);
+          }
+          else{
+            // console.log(snapshot.val())
+            let ObjectToArray = Object.keys(snapshot.val()).map(i => snapshot.val()[i]);
+            // console.log(ObjectToArray)
+            setData(ObjectToArray);
+          }
+          // console.log(reliableData)
         }
         else{
           setData(snapshot.val())
@@ -93,6 +93,11 @@ function index({ navigation }) {
   }, []);
 
   const signOut = () => {
+    let user = auth.currentUser
+    if(user.isAnonymous){
+      var uid = userId + "/";
+      db1.ref(uid).remove()
+    }
     auth
       .signOut()
       .then(() => {
