@@ -18,6 +18,8 @@ import { useEffect } from "react";
 import { auth, db1 } from "../../firebase";
 import Task from "../Todo/Task";
 import RenderRightAction from "../Todo/RenderRightAction";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Value } from "react-native-reanimated";
 
 function index({ navigation }) {
   const [data, setData] = useState([]);
@@ -25,11 +27,12 @@ function index({ navigation }) {
   const [added, setAdded] = useState(0);
   const [fetched, setFetched] = useState(false);
   const [userId, setUserID] = useState("");
+
   const addTodo = () => {
     // setData([...data, { todo: task }]);
 
     var uid = userId + "/";
-    console.log(uid);
+    // console.log(uid);
     if (fetched && task !== "") {
       // console.log(data)
       if (!data) {
@@ -41,62 +44,49 @@ function index({ navigation }) {
         key: id,
         todo: task,
       });
+      // setTask("");
       setAdded(added + 1);
     } else if (task === "") {
-      alert("Enter Task to Add");
+      alert("Enter a Task to Add");
     }
   };
 
-  const remove = (key) =>{
-    console.log(key)
+  const remove = (key) => {
+    // console.log(key)
     var uid = userId + "/";
     db1.ref(uid + key).remove();
     setAdded(added + 1);
-  }
+  };
 
-   async function getUserID(){
+  async function getUserID() {
     let user = await auth.currentUser;
     if (user != null) {
-      console.log(user.uid);
-      console.log(user);
+      // console.log(user.uid);
+      // console.log(user);
       return user.uid;
     } else {
       navigation.popToTop();
     }
+  }
+
+  const getData = async () => {
+    try {
+      const jsonValue = await AsyncStorage.getItem("Todo");
+      // console.log(jsonValue + "Json");
+      // console.log(JSON.parse(jsonValue) + "After");
+
+      return jsonValue
+    } catch (e) {
+      // error reading value
+      console.log(e + "Line 79 inside getData");
+    }
   };
 
-  useEffect(() => {
-    getUserID().then(uid => {
-      setUserID(uid)
-      var todo = db1.ref(uid);
-      todo.on("value", (snapshot) => {
-        // console.log(snapshot.val());
-        if (snapshot.val()) {
-          if(Array.isArray(snapshot.val())){
-            let reliableData = snapshot.val().filter( (m) => m!=undefined || m.todo !== " ")
-            setData(reliableData);
-          }
-          else{
-            // console.log(snapshot.val())
-            let ObjectToArray = Object.keys(snapshot.val()).map(i => snapshot.val()[i]);
-            // console.log(ObjectToArray)
-            setData(ObjectToArray);
-          }
-          // console.log(reliableData)
-        }
-        else{
-          setData(snapshot.val())
-        }
-        setFetched(true);
-      });
-    }).catch((error) => console.warn(error))
-  }, []);
-
   const signOut = () => {
-    let user = auth.currentUser
-    if(user.isAnonymous){
+    let user = auth.currentUser;
+    if (user.isAnonymous) {
       var uid = userId + "/";
-      db1.ref(uid).remove()
+      db1.ref(uid).remove();
     }
     auth
       .signOut()
@@ -106,7 +96,60 @@ function index({ navigation }) {
       .catch((error) => {
         // An error happened.
       });
+    getData().then((value) => {
+      console.log(value + "Before Signout");
+      if (value) {
+        AsyncStorage.setItem("Todo", JSON.stringify([])).then(() =>
+          console.log(value + "After Signout")
+        );
+      }
+    });
   };
+
+  useEffect(() => {
+    getData().then((value) => {
+      console.log(value + "Before storing data")
+      if (value != null) {
+        setData(JSON.parse(value));
+        // console.log(value + "Value");
+        console.log(JSON.parse(value) + "Inside the json loadup");
+        // console.log(JSON.stringify(data) + "DATA 114");
+        setFetched(true);
+      }
+    }).then(() => {
+      getUserID()
+        .then((uid) => {
+          setUserID(uid);
+          var todo = db1.ref(uid);
+          todo.on("value", (snapshot) => {
+            // console.log(snapshot.val());
+            if (snapshot.val()) {
+              if (Array.isArray(snapshot.val())) {
+                let reliableData = snapshot
+                  .val()
+                  .filter((m) => m != undefined || m.todo !== " ");
+                setData(reliableData);
+              } else {
+                // console.log(snapshot.val())
+                let ObjectToArray = Object.keys(snapshot.val()).map(
+                  (i) => snapshot.val()[i]
+                );
+                // console.log(ObjectToArray)
+                setData(ObjectToArray);
+              }
+              // console.log(reliableData)
+            } else {
+              setData(snapshot.val());
+            }
+            // console.log(data + "DATA");
+            AsyncStorage.setItem("Todo", JSON.stringify(data));
+            // getData().then(value => console.log(value + "After storing data"))
+            setFetched(true);
+          });
+        })
+        .catch((error) => console.warn(error))
+    })
+  }, [added]);
 
   return (
     <View style={styles.container}>
@@ -120,6 +163,7 @@ function index({ navigation }) {
         <View style={{ marginLeft: 45, marginRight: 10 }}>
           <TextInput
             onChangeText={(text) => setTask(text)}
+            onSubmitEditing = {addTodo}
             placeholder={"Todo"}
             style={styles.searchBarText}
             clearButtonMode="always"
@@ -147,9 +191,13 @@ function index({ navigation }) {
       >
         <Text>Add</Text>
       </TouchableOpacity>
-        <Button title={"SignOut"} onPress={signOut} />
+      <Button title={"SignOut"} onPress={signOut} />
       {!fetched ? (
-        <ActivityIndicator style={{marginTop: 20}} size={"large"} color={"white"} />
+        <ActivityIndicator
+          style={{ marginTop: 20 }}
+          size={"large"}
+          color={"white"}
+        />
       ) : (
         <FlatList
           data={data}
