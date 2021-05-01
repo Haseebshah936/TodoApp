@@ -145,7 +145,7 @@ function index({ navigation }) {
       // let result = await ImagePicker.launchImageLibraryAsync();
       let result = await ImagePicker.launchCameraAsync();
       if (!result.cancelled) {
-        setImage(result.uri);
+        // setImage(result.uri);
         uploadImage(result.uri, id).catch((error) => console.log(error));
       }
       // setTask("");
