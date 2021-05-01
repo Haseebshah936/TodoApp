@@ -25,5 +25,14 @@ else{
 const db = firebase.firestore();
 const db1 = firebase.database();
 const auth = firebase.auth();
+const storage = firebase.storage();
 
-export {db, db1, auth};
+// service firebase.storage {
+//     match /b/{bucket}/o {
+//       match /{allPaths=**} {
+//         allow read, write: if request.auth != null;
+//       }
+//     }
+//   }
+
+export {db, db1, auth, storage};
