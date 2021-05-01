@@ -15,7 +15,7 @@ import Constants from "expo-constants";
 import { Fontisto } from "@expo/vector-icons";
 import { useState } from "react";
 import { useEffect } from "react";
-import { auth, db1, storage } from "../../firebase";
+import { auth, db, db1, storage } from "../../firebase";
 import Task from "../Todo/Task";
 import RenderRightAction from "../Todo/RenderRightAction";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -34,20 +34,25 @@ function index({ navigation }) {
   const addTodo = () => {
     // setData([...data, { todo: task }]);
     let id;
-    var uid = userId + "/";
+    // var uid = userId + "/";
     // console.log(uid);
     if (fetched && task !== "") {
-      // console.log(data)
-      if (!data) {
+      console.log("AddTodo" + data)
+      if ( data.length == 0) {
         id = 0;
       } else {
         id = data[data.length - 1].key + 1;
       }
-      db1.ref(uid + id).set({
-        key: id,
-        todo: task,
-        avatar: image,
-      });
+      db.collection(userId)
+        .doc(id.toString())
+        .set({
+          key: id,
+          todo: task,
+          avatar: image,
+        })
+        .then(() => {
+          console.log("User added!");
+        });
       // setTask("");
       setImage("https://example.com/jane-q-user/profile.jpg");
       setAdded(added + 1);
@@ -59,7 +64,12 @@ function index({ navigation }) {
   const remove = (key) => {
     // console.log(key)
     var uid = userId + "/";
-    db1.ref(uid + key).remove();
+    db.collection(userId)
+      .doc(key.toString())
+      .delete()
+      .then(() => {
+        console.log("User deleted!");
+      });
     storage
       .ref()
       .child("Images/" + uid + key)
@@ -98,18 +108,25 @@ function index({ navigation }) {
   const signOut = () => {
     let user = auth.currentUser;
     if (user.isAnonymous) {
-      var uid = userId + "/";
-      db1.ref(uid).remove();
-      data.map((m) =>
-        storage
-          .ref()
-          .child("Images/" + uid + m.key)
-          .delete()
-          .then(() => {
-            console.log("File Deleted");
-          })
-          .catch((error) => console.log(error))
-      );
+      if (data) {
+        data.map((m) => {
+          storage
+            .ref()
+            .child("Images/" + userId + "/" + m.key)
+            .delete()
+            .then(() => {
+              console.log("File Deleted");
+            })
+            .catch((error) => console.log(error));
+
+          db.collection(userId)
+            .doc(m.key.toString())
+            .delete()
+            .then(() => {
+              console.log("User deleted!");
+            });
+        });
+      }
     }
     auth
       .signOut()
@@ -134,8 +151,8 @@ function index({ navigation }) {
     let id;
     // console.log(uid);
     if (fetched && task !== "") {
-      // console.log(data)
-      if (!data) {
+      console.log("Add Image" + data)
+      if (data.length == 0) {
         id = 0;
       } else {
         id = data[data.length - 1].key + 1;
@@ -191,32 +208,25 @@ function index({ navigation }) {
         getUserID()
           .then((uid) => {
             setUserID(uid);
-            var todo = db1.ref(uid);
-            todo.on("value", (snapshot) => {
-              // console.log(snapshot.val());
-              if (snapshot.val()) {
-                if (Array.isArray(snapshot.val())) {
-                  let reliableData = snapshot
-                    .val()
-                    .filter((m) => m != undefined || m.todo !== " ");
-                  setData(reliableData);
-                } else {
-                  // console.log(snapshot.val())
-                  let ObjectToArray = Object.keys(snapshot.val()).map(
-                    (i) => snapshot.val()[i]
+            console.log("Inside UseEffect" + userId)
+            db.collection(uid)
+              .get()
+              .then((querySnapshot) => {
+                console.log("Total users: ", querySnapshot.size);
+                if (querySnapshot.size != 0) {
+                  let array = [];
+                  querySnapshot.forEach((documentSnapshot) =>
+                    array.push(documentSnapshot.data())
                   );
-                  // console.log(ObjectToArray)
-                  setData(ObjectToArray);
+                  console.log("Data Fetched" + array);
+                  setData(array);
+                } else {
+                  // setData([]);
                 }
-                // console.log(reliableData)
-              } else {
-                setData(snapshot.val());
-              }
-              // console.log(data + "DATA");
-              AsyncStorage.setItem("Todo", JSON.stringify(data));
-              // getData().then(value => console.log(value + "After storing data"))
-              setFetched(true);
-            });
+              });
+            console.log("Ueffect" + data)
+            AsyncStorage.setItem("Todo", JSON.stringify(data));
+            setFetched(true);
           })
           .catch((error) => console.warn(error));
       });

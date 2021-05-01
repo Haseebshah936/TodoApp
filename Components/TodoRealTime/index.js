@@ -38,7 +38,7 @@ function index({ navigation }) {
     // console.log(uid);
     if (fetched && task !== "") {
       // console.log(data)
-      if (!data) {
+      if (!data || data.length == 0) {
         id = 0;
       } else {
         id = data[data.length - 1].key + 1;
@@ -60,9 +60,14 @@ function index({ navigation }) {
     // console.log(key)
     var uid = userId + "/";
     db1.ref(uid + key).remove();
-    storage.ref().child("Images/"+uid+key).delete().then(() => {
-      console.log("File Deleted");
-    }).catch((error) => console.log(error))
+    storage
+      .ref()
+      .child("Images/" + uid + key)
+      .delete()
+      .then(() => {
+        console.log("File Deleted");
+      })
+      .catch((error) => console.log(error));
     setAdded(added + 1);
   };
 
@@ -95,6 +100,18 @@ function index({ navigation }) {
     if (user.isAnonymous) {
       var uid = userId + "/";
       db1.ref(uid).remove();
+      if(data ){
+        data.map((m) =>
+          storage
+            .ref()
+            .child("Images/" + uid + m.key)
+            .delete()
+            .then(() => {
+              console.log("File Deleted");
+            })
+            .catch((error) => console.log(error))
+        );
+      }
     }
     auth
       .signOut()
@@ -120,7 +137,7 @@ function index({ navigation }) {
     // console.log(uid);
     if (fetched && task !== "") {
       // console.log(data)
-      if (!data) {
+      if (!data || data.length == 0) {
         id = 0;
       } else {
         id = data[data.length - 1].key + 1;
@@ -275,7 +292,7 @@ function index({ navigation }) {
       ) : (
         <FlatList
           data={data}
-          style={{ flex: 1, backgroundColor: "white", marginTop: 20,}}
+          style={{ flex: 1, backgroundColor: "white", marginTop: 20 }}
           keyExtractor={(item, index) => index.toString()}
           renderItem={({ item }) => (
             <Task
@@ -286,11 +303,13 @@ function index({ navigation }) {
               )}
             />
           )}
-          ItemSeparatorComponent={() => <View style={{marginVertical: 10}}></View>}
+          ItemSeparatorComponent={() => (
+            <View style={{ marginVertical: 10 }}></View>
+          )}
           refreshing={loading}
-          onRefresh = {() => {
-            setLoading(false)
-            setAdded(added+1)
+          onRefresh={() => {
+            setLoading(false);
+            setAdded(added + 1);
           }}
         />
       )}
