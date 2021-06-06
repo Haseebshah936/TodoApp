@@ -3,13 +3,18 @@ import { View, StyleSheet, Text, Image } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 
 function Task({ todo, avatar, description, renderRightActions }) {
+  if (!avatar) {
+    avatar = "";
+  }
   return (
     <Swipeable renderRightActions={renderRightActions}>
       <View style={styles.data}>
-        {avatar && <Image
-          style={{ borderRadius: 30 }}
-          source={{ width: 60, height: 60, uri: avatar }}
-        />}
+        {avatar != "" && (
+          <Image
+            style={{ borderRadius: 30 }}
+            source={{ width: 60, height: 60, uri: avatar }}
+          />
+        )}
         <View style={styles.textContainer}>
           <View style={styles.subTextContainer}>
             <Text style={styles.text}>{todo} </Text>

@@ -100,7 +100,7 @@ function index({ navigation }) {
     if (user.isAnonymous) {
       var uid = userId + "/";
       db1.ref(uid).remove();
-      if(data ){
+      if (data) {
         data.map((m) =>
           storage
             .ref()
