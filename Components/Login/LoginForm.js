@@ -23,6 +23,11 @@ import * as Facebook from "expo-facebook";
 import * as Google from "expo-google-app-auth";
 
 import { auth, fbAuthProvider, googleAuthProvider } from "../../firebase";
+import {
+  androidClientIdGoogle,
+  iosClientIdGoogle,
+  appIdFb,
+} from "../../APIKeys";
 
 const validationSchema = Yup.object().shape({
   email: Yup.string().required().email().label("Email"),
@@ -66,7 +71,7 @@ function LoginForm({ navigation }) {
   const loginWithFacebook = async () => {
     try {
       await Facebook.initializeAsync({
-        appId: "815775045793288",
+        appId: appIdFb,
       });
       const { type, token, expirationDate, permissions, declinedPermissions } =
         await Facebook.logInWithReadPermissionsAsync({
@@ -90,10 +95,8 @@ function LoginForm({ navigation }) {
   const loginWithGoogle = async () => {
     try {
       const result = await Google.logInAsync({
-        androidClientId:
-          "1032518549083-jj8ovj8b2ak0gg8gc5e3h5g61bjfjd0r.apps.googleusercontent.com",
-        iosClientId:
-          "1032518549083-kgnmhjf358veppm8kuksk2urhskpfuf1.apps.googleusercontent.com",
+        androidClientId: androidClientIdGoogle,
+        iosClientId: iosClientIdGoogle,
         behavior: "web",
         scopes: ["profile", "email"],
       });
